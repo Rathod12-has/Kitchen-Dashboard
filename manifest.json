@@ -1,0 +1,21 @@
+{
+  "name": "Devi Sri Delights And Foods",
+  "short_name": "Devi Sri Foods",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f4f6f8",
+  "theme_color": "#e65100",
+  "description": "Order food directly from Devi Sri Delights.",
+  "icons": [
+    {
+      "src": "logo-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "logo-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

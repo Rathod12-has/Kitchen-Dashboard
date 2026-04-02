@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Devi Sri Delights And Foods</title>
+    
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#e65100">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f6f8;
+            margin: 0; padding: 0;
+            padding-bottom: 80px;
+        }
+        .header {
+            background: linear-gradient(135deg, #111, #2c3e50);
+            color: #f8c471; padding: 20px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border-bottom: 5px solid #e65100;
+        }
+        .header h1 { margin: 0; font-family: 'Playfair Display', serif; }
+        
+        .action-bar {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            padding: 15px;
+            background: #fff;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .app-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        #download-btn {
+            background-color: #e65100;
+            color: white;
+            display: none; /* Hidden until PWA is ready */
+        }
+        #share-btn {
+            background-color: #2c3e50;
+            color: white;
+        }
+
+        .menu-container {
+            padding: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .menu-item {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .item-info h3 { margin: 0 0 5px 0; color: #333; }
+        .item-info p { margin: 0; color: #e65100; font-weight: bold; }
+        .order-btn {
+            background: #25D366; color: white; border: none;
+            padding: 10px 15px; border-radius: 6px; font-weight: bold; cursor: pointer;
+        }
+
+        #order-modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); align-items: center; justify-content: center;
+        }
+        .modal-content {
+            background: white; padding: 20px; border-radius: 12px; width: 90%; max-width: 400px;
+        }
+        .modal-content input {
+            width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box;
+        }
+        .submit-order-btn {
+            width: 100%; background: #e65100; color: white; border: none; padding: 12px; border-radius: 6px; font-weight: bold; cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>Devi Sri Delights</h1>
+        <p style="margin: 5px 0 0 0; color: white;">Order Fresh & Fast</p>
+    </div>
+
+    <div class="action-bar">
+        <button id="download-btn" class="app-btn">📱 Download App</button>
+        <button id="share-btn" class="app-btn">🔗 Share App</button>
+    </div>
+
+    <div class="menu-container">
+        <div class="menu-item">
+            <div class="item-info">
+                <h3>Special Chicken Biryani</h3>
+                <p>₹250</p>
+            </div>
+            <button class="order-btn" onclick="openOrderModal('Special Chicken Biryani', 250)">Order</button>
+        </div>
+        <div class="menu-item">
+            <div class="item-info">
+                <h3>Paneer Butter Masala</h3>
+                <p>₹180</p>
+            </div>
+            <button class="order-btn" onclick="openOrderModal('Paneer Butter Masala', 180)">Order</button>
+        </div>
+    </div>
+
+    <div id="order-modal">
+        <div class="modal-content">
+            <h3 id="modal-item-name">Checkout</h3>
+            <input type="text" id="cust-name" placeholder="Your Name" required>
+            <input type="tel" id="cust-phone" placeholder="WhatsApp Number" required>
+            <button class="submit-order-btn" onclick="placeOrder()">Place Order</button>
+            <button onclick="closeOrderModal()" style="width: 100%; margin-top: 10px; padding: 10px; border: none; background: #eee; border-radius: 6px;">Cancel</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyC7uuy0yYV3L17RJ0RvbN-mrfqrT4PquMo",
+            authDomain: "devi-sri-delights.firebaseapp.com",
+            projectId: "devi-sri-delights",
+            storageBucket: "devi-sri-delights.firebasestorage.app",
+            messagingSenderId: "73108349440",
+            appId: "1:73108349440:web:8ca038c61c9a85b2b12ee5"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        let currentItem = "";
+        let currentPrice = 0;
+
+        window.openOrderModal = function(itemName, price) {
+            currentItem = itemName;
+            currentPrice = price;
+            document.getElementById('modal-item-name').innerText = `Order: ${itemName}`;
+            document.getElementById('order-modal').style.display = 'flex';
+        }
+
+        window.closeOrderModal = function() {
+            document.getElementById('order-modal').style.display = 'none';
+        }
+
+        window.placeOrder = async function() {
+            const name = document.getElementById('cust-name').value;
+            const phone = document.getElementById('cust-phone').value;
+
+            if(!name || !phone) return alert("Please enter name and phone number");
+
+            const orderData = {
+                customerName: name,
+                customerPhone: phone,
+                status: "Pending",
+                timestamp: serverTimestamp(),
+                totalBill: currentPrice,
+                orderItems: {
+                    [currentItem]: { quantity: 1, price: currentPrice }
+                }
+            };
+
+            try {
+                await addDoc(collection(db, "orders"), orderData);
+                alert("Order placed successfully! The kitchen has received it.");
+                closeOrderModal();
+            } catch (e) {
+                console.error("Error adding document: ", e);
+                alert("Error placing order.");
+            }
+        }
+    </script>
+
+    <script>
+        // --- SHARE APP FUNCTIONALITY ---
+        document.getElementById('share-btn').addEventListener('click', async () => {
+            if (navigator.share) {
+                try {
+                    await navigator.share({
+                        title: 'Devi Sri Delights',
+                        text: 'Order delicious food directly from our new app!',
+                        url: window.location.href
+                    });
+                } catch (err) {
+                    console.log('Error sharing:', err);
+                }
+            } else {
+                alert('Copy this link to share: ' + window.location.href);
+            }
+        });
+
+        // --- DOWNLOAD APP (PWA) FUNCTIONALITY ---
+        let deferredPrompt;
+        const downloadBtn = document.getElementById('download-btn');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            // Prevent Chrome 67 and earlier from automatically showing the prompt
+            e.preventDefault();
+            // Stash the event so it can be triggered later.
+            deferredPrompt = e;
+            // Update UI to notify the user they can add to home screen
+            downloadBtn.style.display = 'flex';
+        });
+
+        downloadBtn.addEventListener('click', async () => {
+            if (deferredPrompt !== null) {
+                // Show the install prompt
+                deferredPrompt.prompt();
+                // Wait for the user to respond to the prompt
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    console.log('User accepted the install prompt');
+                } else {
+                    console.log('User dismissed the install prompt');
+                }
+                // We've used the prompt, and can't use it again, throw it away
+                deferredPrompt = null;
+                downloadBtn.style.display = 'none';
+            }
+        });
+
+        // Register Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js').then((registration) => {
+                    console.log('ServiceWorker registration successful');
+                }, (err) => {
+                    console.log('ServiceWorker registration failed: ', err);
+                });
+            });
+        }
+    </script>
+</body>
+</html>
