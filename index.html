@@ -81,7 +81,6 @@
         import { getFirestore, collection, query, orderBy, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js"; 
 
-        // --- 1. FIREBASE CONFIGURATION ---
         const firebaseConfig = {
             apiKey: "AIzaSyC7uuy0yYV3L17RJ0RvbN-mrfqrT4PquMo",
             authDomain: "devi-sri-delights.firebaseapp.com",
@@ -95,7 +94,6 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
 
-        // --- 2. DOM ELEMENTS ---
         const loginScreen = document.getElementById('login-screen');
         const dashboardScreen = document.getElementById('dashboard-screen');
         const pendingContainer = document.getElementById('pending-container');
@@ -110,7 +108,7 @@
         let unsubscribeSnapshot = null; 
         window.allOrders = {};
 
-        // --- 3. TAB SWITCHING LOGIC ---
+        // --- TAB SWITCHING LOGIC ---
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -124,7 +122,7 @@
             });
         });
 
-        // --- 4. AUTHENTICATION LOGIC ---
+        // --- AUTHENTICATION LOGIC ---
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 loginScreen.style.display = 'none';
@@ -169,7 +167,7 @@
             signOut(auth); 
         };
 
-        // --- 5. SEARCH FILTERING ---
+        // --- SEARCH FILTERING ---
         function filterOrders() {
             const searchTerm = searchBar.value.toLowerCase();
             const cards = document.querySelectorAll('.order-card');
@@ -180,7 +178,7 @@
         }
         searchBar.addEventListener('input', filterOrders);
 
-        // --- 6. REAL-TIME DATABASE SYNC ---
+        // --- REAL-TIME DATABASE SYNC ---
         function loadLiveOrders() {
             const q = query(collection(db, "orders"), orderBy("timestamp", "desc"));
 
@@ -289,7 +287,7 @@
             });
         }
 
-        // --- 7. ORDER ACTIONS & WHATSAPP GENERATION ---
+        // --- ORDER ACTIONS & WHATSAPP GENERATION ---
         window.markReady = async function(orderId) {
             const orderRef = doc(db, "orders", orderId);
             await updateDoc(orderRef, { status: "Ready" }); 
@@ -312,6 +310,51 @@
             await updateDoc(orderRef, { status: "Picked up" }); 
         };
 
+        // --- SHARING & PWA LOGIC ---
+        document.getElementById('share-float').addEventListener('click', async () => {
+            if (navigator.share) {
+                try {
+                    await navigator.share({
+                        title: 'Live Kitchen Dashboard',
+                        text: 'Access the Devi Sri Delights Kitchen Dashboard',
+                        url: window.location.href
+                    });
+                } catch (err) {
+                    console.log('Error sharing:', err);
+                }
+            } else {
+                navigator.clipboard.writeText(window.location.href);
+                alert('Dashboard link copied to clipboard!');
+            }
+        });
+
+        let deferredPrompt;
+        const downloadBtn = document.getElementById('download-float');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            downloadBtn.style.display = 'block';
+        });
+
+        downloadBtn.addEventListener('click', async () => {
+            if (deferredPrompt !== null) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                deferredPrompt = null;
+                if(outcome === 'accepted') {
+                    downloadBtn.style.display = 'none';
+                }
+            }
+        });
+
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js').catch(err => {
+                    console.log('ServiceWorker registration failed: ', err);
+                });
+            });
+        }
     </script>
 </body>
 </html>
