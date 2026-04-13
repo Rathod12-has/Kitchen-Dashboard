@@ -6,172 +6,74 @@
     <title>Live Kitchen | Devi Sri Delights</title>
     
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#e65100">
+    <meta name="theme-color" content="#7E2CD4">
 
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f4f6f8;
-            margin: 0; padding: 20px;
-        }
-
-        /* --- Login Screen Styles --- */
-        #login-screen {
-            max-width: 400px;
-            margin: 100px auto;
-            background: white;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            text-align: center;
-            border-top: 5px solid #e65100;
-        }
-        #login-screen h2 { font-family: 'Playfair Display', serif; color: #333; margin-top: 0; }
-        .login-input {
-            width: 100%; padding: 12px; margin: 10px 0;
-            border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 1rem;
-        }
-        .login-btn {
-            width: 100%; background: #e65100; color: white; border: none;
-            padding: 12px; font-size: 1.1rem; font-weight: bold; border-radius: 6px; cursor: pointer;
-        }
-        #error-msg { color: #d32f2f; margin-top: 10px; font-size: 0.9rem; }
-
-        /* --- Dashboard Styles --- */
-        #dashboard-screen { display: none; } /* Hidden until logged in */
-        
-        .header {
-            background: linear-gradient(135deg, #111, #2c3e50);
-            color: #f8c471; padding: 20px; border-radius: 12px;
-            display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
-        .header-titles h1 { margin: 0; font-family: 'Playfair Display', serif; }
-        .header-titles p { margin: 5px 0 0 0; opacity: 0.9; }
-        .logout-btn { background: #ff4d4d; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.3s; }
-        .logout-btn:hover { background: #cc0000; }
-
-        /* --- Daily Stats Bar --- */
-        .stats-bar {
-            background: white; padding: 15px 20px; border-radius: 12px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 20px;
-            display: flex; justify-content: space-between; align-items: center;
-            border-left: 5px solid #e65100; font-weight: bold; font-size: 1.1rem; color: #333;
-        }
-        .stats-bar span { color: #e65100; font-size: 1.4rem; }
-
-        /* --- Search Bar Styling --- */
-        .search-container { margin-bottom: 20px; width: 100%; }
-        #search-bar {
-            width: 100%; box-sizing: border-box; padding: 18px; 
-            border-radius: 12px; border: 1px solid #eee; 
-            border-top: 5px solid #2c3e50; font-size: 1.1rem; 
-            outline: none; box-shadow: 0 4px 10px rgba(0,0,0,0.05); 
-            transition: all 0.3s ease;
-        }
-        #search-bar:focus { 
-            border-color: #e65100; border-top-color: #e65100; 
-            box-shadow: 0 4px 15px rgba(230, 81, 0, 0.15); 
-        }
-
-        /* --- Order Cards --- */
-        #orders-container {
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;
-        }
-        .order-card {
-            background: white; padding: 20px; border-radius: 12px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05); border-top: 5px solid #ff9800; /* Pending color */
-            display: flex; flex-direction: column; transition: all 0.3s ease;
-        }
-        .order-card.ready { border-top: 5px solid #25D366; } /* Ready color */
-        .order-card.completed { border-top: 5px solid #888; opacity: 0.6; } /* Picked Up color */
-
-        .order-header {
-            display: flex; justify-content: space-between; align-items: center;
-            border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 10px;
-        }
-        .order-header h3 { margin: 0; color: #333; }
-        .time-badge { background: #eee; padding: 4px 8px; border-radius: 6px; font-size: 0.8rem; color: #666; font-weight: bold; }
-        
-        .item-list { margin: 0; padding-left: 20px; color: #555; line-height: 1.6; flex-grow: 1; font-size: 1.05rem; }
-        .total-bill { font-size: 1.2rem; font-weight: bold; color: #e65100; text-align: right; margin-top: 15px; border-top: 1px dashed #eee; padding-top: 10px; }
-        
-        .action-btn {
-            background-color: #f39c12; color: white; border: none; padding: 12px;
-            border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 15px; width: 100%; font-size: 1.05rem; transition: 0.3s;
-        }
-        .action-btn:hover { background-color: #e67e22; }
-        
-        .pickup-btn { background-color: #25D366; }
-        .pickup-btn:hover { background-color: #20b858; }
-
-        .completed-text { text-align: center; color: #888; font-weight: bold; margin-top: 15px; padding: 12px; background: #f9f9f9; border-radius: 6px; }
-
-        /* --- Floating App Download/Share Buttons --- */
-        .floating-app-bar {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            z-index: 1000;
-        }
-        .float-btn {
-            background: #2c3e50;
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 50px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 1rem;
-            transition: 0.3s;
-        }
-        .float-btn:hover { background: #1a252f; transform: translateY(-2px); }
-        #download-float { 
-            background: #e65100; 
-            display: none; /* Hidden until browser says it can be installed */
-        }
-        #download-float:hover { background: #cc4800; }
-    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Playfair+Display:wght@700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
     <div id="login-screen">
-        <h2>👨‍🍳 Kitchen Access</h2>
-        <input type="email" id="email-input" class="login-input" placeholder="Admin Email">
-        <input type="password" id="password-input" class="login-input" placeholder="Password">
-        <button class="login-btn" onclick="attemptLogin()">Log In</button>
+        <h2 class="classy-title">👨‍🍳 Kitchen Access</h2>
+        <input type="email" id="email-input" class="styled-input" placeholder="Admin Email">
+        <input type="password" id="password-input" class="styled-input" placeholder="Password">
+        <button class="action-btn" onclick="attemptLogin()" style="margin-top: 20px;">Log In</button>
         <div id="error-msg"></div>
     </div>
 
     <div id="dashboard-screen">
-        <div class="header">
+        
+        <div class="dashboard-header">
             <div class="header-titles">
-                <h1>👨‍🍳 Kitchen Dashboard</h1>
-                <p>Live Orders for Devi Sri Delights</p>
+                <h1 class="classy-title" style="color: white; font-size: 1.8rem;">👨‍🍳 Kitchen Dashboard</h1>
+                <p style="color: #E9D5FF; font-weight: 600; margin: 5px 0 0 0;">Live Orders for Devi Sri Delights</p>
             </div>
             <button class="logout-btn" onclick="attemptLogout()">Logout</button>
         </div>
 
         <div class="stats-bar">
-            <div>📈 Today's Total Orders</div>
-            <span id="today-count">0</span>
+            <div class="stat-box">
+                <div class="stat-title">📈 Today's Orders</div>
+                <div class="stat-value" id="today-count">0</div>
+            </div>
+            <div class="stat-box" style="border-left-color: #10B981;">
+                <div class="stat-title">💰 Today's Earned</div>
+                <div class="stat-value" id="today-earnings" style="color: #10B981;">₹0</div>
+            </div>
         </div>
 
-        <div class="search-container">
-            <input type="text" id="search-bar" placeholder="🔍 Search by customer name...">
+        <div class="tabs-container">
+            <button class="tab-btn active" data-tab="pending">New Orders</button>
+            <button class="tab-btn" data-tab="ready">Ready (Notify)</button>
+            <button class="tab-btn" data-tab="completed">Picked Up</button>
+            <button class="tab-btn" data-tab="summary">Today's Item Summary</button>
         </div>
 
-        <div id="orders-container"></div>
+        <div class="search-container" id="search-wrapper">
+            <input type="text" id="search-bar" class="styled-input" placeholder="🔍 Search by customer name...">
+        </div>
+
+        <div id="pending-tab" class="tab-panel active">
+            <div class="orders-grid" id="pending-container"></div>
+        </div>
+        
+        <div id="ready-tab" class="tab-panel">
+            <div class="orders-grid" id="ready-container"></div>
+        </div>
+
+        <div id="completed-tab" class="tab-panel">
+            <div class="orders-grid" id="completed-container"></div>
+        </div>
+
+        <div id="summary-tab" class="tab-panel">
+            <div class="summary-grid" id="item-summary-container"></div>
+        </div>
+
     </div>
 
     <div class="floating-app-bar">
-        <button id="share-float" class="float-btn">🔗 Share App</button>
-        <button id="download-float" class="float-btn">📱 Download App</button>
+        <button id="share-float" class="float-btn">🔗 Share Dashboard</button>
+        <button id="download-float" class="float-btn" style="background: var(--btn-primary);">📱 Install App</button>
     </div>
 
     <script type="module">
@@ -179,30 +81,50 @@
         import { getFirestore, collection, query, orderBy, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js"; 
 
+        // --- 1. FIREBASE CONFIGURATION ---
         const firebaseConfig = {
             apiKey: "AIzaSyC7uuy0yYV3L17RJ0RvbN-mrfqrT4PquMo",
             authDomain: "devi-sri-delights.firebaseapp.com",
             projectId: "devi-sri-delights",
             storageBucket: "devi-sri-delights.firebasestorage.app",
             messagingSenderId: "73108349440",
-            appId: "1:73108349440:web:8ca038c61c9a85b2b12ee5",
-            measurementId: "G-FSKW9M3WL1"
+            appId: "1:73108349440:web:8ca038c61c9a85b2b12ee5"
         };
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
-        
+
+        // --- 2. DOM ELEMENTS ---
         const loginScreen = document.getElementById('login-screen');
         const dashboardScreen = document.getElementById('dashboard-screen');
-        const ordersContainer = document.getElementById('orders-container');
+        const pendingContainer = document.getElementById('pending-container');
+        const readyContainer = document.getElementById('ready-container');
+        const completedContainer = document.getElementById('completed-container');
+        const summaryContainer = document.getElementById('item-summary-container');
+
         const searchBar = document.getElementById('search-bar');
+        const searchWrapper = document.getElementById('search-wrapper');
         const errorMsg = document.getElementById('error-msg');
 
         let unsubscribeSnapshot = null; 
-        
         window.allOrders = {};
 
+        // --- 3. TAB SWITCHING LOGIC ---
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+                
+                e.target.classList.add('active');
+                const targetTab = e.target.getAttribute('data-tab');
+                document.getElementById(targetTab + '-tab').classList.add('active');
+
+                searchWrapper.style.display = (targetTab === 'summary') ? 'none' : 'block';
+            });
+        });
+
+        // --- 4. AUTHENTICATION LOGIC ---
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 loginScreen.style.display = 'none';
@@ -219,15 +141,35 @@
         window.attemptLogin = function() {
             const email = document.getElementById('email-input').value.trim();
             const password = document.getElementById('password-input').value.trim();
-            errorMsg.innerText = 'Logging in...';
+            
+            if (!email || !password) {
+                errorMsg.innerText = "Please enter both email and password.";
+                return;
+            }
+
+            errorMsg.innerText = 'Connecting to Firebase...';
+            
             signInWithEmailAndPassword(auth, email, password)
+                .then((userCredential) => {
+                    console.log("Successfully logged in!");
+                })
                 .catch((error) => {
-                    errorMsg.innerText = "Incorrect email or password. Try again.";
+                    console.error("Login Error:", error);
+                    if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password') {
+                        errorMsg.innerText = "Incorrect email or password. Try again.";
+                    } else if (error.code === 'auth/user-not-found') {
+                        errorMsg.innerText = "No account found with this email.";
+                    } else {
+                        errorMsg.innerText = "Error: " + error.message;
+                    }
                 });
         };
 
-        window.attemptLogout = function() { signOut(auth); };
+        window.attemptLogout = function() { 
+            signOut(auth); 
+        };
 
+        // --- 5. SEARCH FILTERING ---
         function filterOrders() {
             const searchTerm = searchBar.value.toLowerCase();
             const cards = document.querySelectorAll('.order-card');
@@ -238,16 +180,28 @@
         }
         searchBar.addEventListener('input', filterOrders);
 
+        // --- 6. REAL-TIME DATABASE SYNC ---
         function loadLiveOrders() {
             const q = query(collection(db, "orders"), orderBy("timestamp", "desc"));
 
             unsubscribeSnapshot = onSnapshot(q, (snapshot) => {
-                ordersContainer.innerHTML = ''; 
+                pendingContainer.innerHTML = ''; 
+                readyContainer.innerHTML = '';
+                completedContainer.innerHTML = '';
+                summaryContainer.innerHTML = '';
+                
                 window.allOrders = {}; 
                 
                 let todayCount = 0;
+                let todayEarnings = 0;
+                let itemSummary = {};
+
                 const startOfToday = new Date();
                 startOfToday.setHours(0, 0, 0, 0);
+
+                let pendingHtml = '';
+                let readyHtml = '';
+                let completedHtml = '';
 
                 snapshot.forEach((orderDoc) => {
                     const order = orderDoc.data();
@@ -255,13 +209,23 @@
                     window.allOrders[orderId] = order;
                     
                     let orderDate = order.timestamp ? order.timestamp.toDate() : new Date();
-                    if (orderDate >= startOfToday) {
+                    let isToday = orderDate >= startOfToday;
+
+                    if (isToday) {
                         todayCount++;
+                        todayEarnings += Number(order.totalBill) || 0;
+                        
+                        for (let itemName in order.orderItems) {
+                            itemSummary[itemName] = (itemSummary[itemName] || 0) + order.orderItems[itemName].quantity;
+                        }
                     }
 
                     let timeString = "Just Now";
                     if(order.timestamp) {
                         timeString = orderDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                        if(!isToday) {
+                            timeString = orderDate.toLocaleDateString() + " " + timeString;
+                        }
                     }
 
                     let itemsHTML = '';
@@ -283,27 +247,49 @@
                         actionHTML = `<div class="completed-text">✔️ Order Picked Up</div>`;
                     }
 
-                    const card = document.createElement('div');
-                    card.className = `order-card ${cardClass}`;
-                    card.innerHTML = `
-                        <div class="order-header">
-                            <h3>👤 ${order.customerName}</h3>
-                            <span class="time-badge">🕒 ${timeString}</span>
+                    const cardHTML = `
+                        <div class="order-card ${cardClass}">
+                            <div class="order-header">
+                                <h3>👤 ${order.customerName}</h3>
+                                <span class="time-badge">🕒 ${timeString}</span>
+                            </div>
+                            <ul class="item-list">
+                                ${itemsHTML}
+                            </ul>
+                            <div class="total-bill">Total: ₹${order.totalBill}</div>
+                            ${actionHTML}
                         </div>
-                        <ul class="item-list">
-                            ${itemsHTML}
-                        </ul>
-                        <div class="total-bill">Total: ₹${order.totalBill}</div>
-                        ${actionHTML}
                     `;
-                    ordersContainer.appendChild(card);
+
+                    if (status === "Pending") pendingHtml += cardHTML;
+                    else if (status === "Ready") readyHtml += cardHTML;
+                    else completedHtml += cardHTML;
                 });
                 
+                pendingContainer.innerHTML = pendingHtml || '<div class="empty-state">No new orders right now.</div>';
+                readyContainer.innerHTML = readyHtml || '<div class="empty-state">No orders waiting for pickup.</div>';
+                completedContainer.innerHTML = completedHtml || '<div class="empty-state">No completed orders yet.</div>';
+
                 document.getElementById('today-count').innerText = todayCount;
+                document.getElementById('today-earnings').innerText = '₹' + todayEarnings;
+
+                let summaryHTML = '';
+                let hasItems = false;
+                for (let item in itemSummary) {
+                    hasItems = true;
+                    summaryHTML += `
+                        <div class="summary-item">
+                            <div>${item}</div>
+                            <span>x${itemSummary[item]}</span>
+                        </div>`;
+                }
+                summaryContainer.innerHTML = hasItems ? summaryHTML : '<div class="empty-state" style="grid-column: 1/-1;">No items sold today yet.</div>';
+
                 filterOrders();
             });
         }
 
+        // --- 7. ORDER ACTIONS & WHATSAPP GENERATION ---
         window.markReady = async function(orderId) {
             const orderRef = doc(db, "orders", orderId);
             await updateDoc(orderRef, { status: "Ready" }); 
@@ -326,59 +312,6 @@
             await updateDoc(orderRef, { status: "Picked up" }); 
         };
 
-    </script>
-
-    <script>
-        // --- SHARE APP LOGIC ---
-        document.getElementById('share-float').addEventListener('click', async () => {
-            if (navigator.share) {
-                try {
-                    await navigator.share({
-                        title: 'Live Kitchen Dashboard',
-                        text: 'Access the Devi Sri Delights Kitchen Dashboard',
-                        url: window.location.href
-                    });
-                } catch (err) {
-                    console.log('Error sharing:', err);
-                }
-            } else {
-                // Fallback for desktop browsers
-                navigator.clipboard.writeText(window.location.href);
-                alert('Dashboard link copied to clipboard!');
-            }
-        });
-
-        // --- DOWNLOAD APP (PWA) LOGIC ---
-        let deferredPrompt;
-        const downloadBtn = document.getElementById('download-float');
-
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            // Un-hide the button if the browser allows installation
-            downloadBtn.style.display = 'block';
-        });
-
-        downloadBtn.addEventListener('click', async () => {
-            if (deferredPrompt !== null) {
-                deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
-                deferredPrompt = null;
-                // Hide button after they accept
-                if(outcome === 'accepted') {
-                    downloadBtn.style.display = 'none';
-                }
-            }
-        });
-
-        // --- SERVICE WORKER REGISTRATION ---
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js').catch(err => {
-                    console.log('ServiceWorker registration failed: ', err);
-                });
-            });
-        }
     </script>
 </body>
 </html>
