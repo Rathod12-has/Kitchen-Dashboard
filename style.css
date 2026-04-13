@@ -132,7 +132,7 @@ body {
     justify-content: space-between; 
     align-items: center;
 }
-.stat-box:nth-child(2) { border-left-color: var(--status-ready); } 
+.stat-box:nth-child(2) { border-left-color: var(--status-ready); } /* Green for money */
 
 .stat-title { font-weight: 800; font-size: 1.1rem; color: var(--text-dark); }
 .stat-value { color: var(--text-accent); font-size: 1.8rem; font-weight: 900; }
