@@ -86,24 +86,26 @@ window.renderOrders = function() {
     filteredOrders.forEach(order => {
         let timeStr = order.timestamp ? new Date(order.timestamp.toMillis()).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'Just now';
         
-        // Build items list for the UI AND for WhatsApp
         let itemsHtml = "";
         let whatsappItemsText = "";
         
         for(let itemName in order.orderItems) { 
             let item = order.orderItems[itemName]; 
+            // HTML for Admin UI
             itemsHtml += `<div><span>${item.quantity}x ${itemName}</span><span>₹${item.price * item.quantity}</span></div>`; 
-            // Format for WhatsApp: "2x Jowar Roti (₹30)"
-            whatsappItemsText += `${item.quantity}x ${itemName} (₹${item.price * item.quantity})%0A`;
+            // Text for WhatsApp (using bullet points)
+            whatsappItemsText += `• ${itemName} (x${item.quantity})\n`;
         }
 
         let statusClass = "pending"; let actionButton = "";
         let phoneForWa = order.customerPhone || ""; if (phoneForWa.startsWith("+")) phoneForWa = phoneForWa.substring(1);
 
         if (order.status === "Pending" || !order.status) {
-            // DETAILED WHATSAPP MESSAGE
-            let detailedMsg = `Hello *${order.customerName}*! 🎉%0A%0AYour order is *READY* for pickup at Devi Sri Delights!%0A%0A*Order Details:*%0A${whatsappItemsText}%0A*Total Bill: ₹${order.totalBill}*%0A%0ASee you soon!`;
-            let waLink = `https://wa.me/${phoneForWa}?text=${detailedMsg}`;
+            // NEW CUSTOM WHATSAPP TEMPLATE
+            let detailedMsgRaw = `🎉 *Your Order is Ready!*\n\nHello ${order.customerName},\nYour food from *Devi Sri Delights* is hot and ready for pickup!\n\n*Order Details:*\n${whatsappItemsText}\n*Total Bill:* ₹${order.totalBill}\n\nPlease collect it at the counter. See you soon! 😋`;
+            
+            let waLink = `https://wa.me/${phoneForWa}?text=${encodeURIComponent(detailedMsgRaw)}`;
+            
             actionButton = `<button class="btn-ready" onclick="markReady('${order.id}', '${waLink}')">Mark Ready & Notify</button>`;
         } else if (order.status === "Ready") {
             statusClass = "ready"; actionButton = `<button class="btn-picked" onclick="markPickedUp('${order.id}')">Confirm Picked Up</button>`;
