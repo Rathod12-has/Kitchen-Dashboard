@@ -25,10 +25,7 @@ window.switchTab = function(tabId) {
 // --- FEATURE: STORE OPEN/CLOSE ---
 function listenForStoreStatus() {
     onSnapshot(doc(db, "settings", "store"), (docSnap) => {
-        if (!docSnap.exists()) {
-            setDoc(doc(db, "settings", "store"), { isOpen: true });
-            return;
-        }
+        if (!docSnap.exists()) { setDoc(doc(db, "settings", "store"), { isOpen: true }); return; }
         let isOpen = docSnap.data().isOpen;
         document.getElementById('store-toggle').checked = isOpen;
         document.getElementById('store-status-text').innerText = isOpen ? "Store Open" : "Store Closed";
@@ -45,11 +42,9 @@ window.toggleStoreOpen = async function() {
 window.sendBroadcast = async function() {
     let msg = document.getElementById('broadcast-msg').value.trim();
     if (!msg) return alert("Please type a message first.");
-    
     if(confirm("Send this alert to all active customers immediately?")) {
         await addDoc(collection(db, "broadcasts"), { message: msg, timestamp: serverTimestamp() });
-        document.getElementById('broadcast-msg').value = "";
-        alert("Broadcast Sent! 🚀");
+        document.getElementById('broadcast-msg').value = ""; alert("Broadcast Sent! 🚀");
     }
 };
 
@@ -60,8 +55,7 @@ function listenForOrders() {
         window.allOrders = [];
         snapshot.forEach(doc => window.allOrders.push({ id: doc.id, ...doc.data() }));
         if (!initialLoad && snapshot.docChanges().some(change => change.type === "added")) document.getElementById('kitchen-bell').play().catch(e=>console.log("Audio blocked"));
-        initialLoad = false;
-        calculateTodayMetrics(); renderOrders();
+        initialLoad = false; calculateTodayMetrics(); renderOrders();
     });
 }
 
@@ -77,8 +71,7 @@ function calculateTodayMetrics() {
         }
     });
 
-    document.getElementById('metric-orders').innerText = todayCount;
-    document.getElementById('metric-earnings').innerText = "₹" + todayEarnings;
+    document.getElementById('metric-orders').innerText = todayCount; document.getElementById('metric-earnings').innerText = "₹" + todayEarnings;
     let itemsHtml = ""; for (let item in itemSummary) itemsHtml += `<span class="item-tag">${item} x${itemSummary[item]}</span>`;
     document.getElementById('metric-items').innerHTML = itemsHtml || '<p style="color: #64748B;">No items sold today.</p>';
 }
@@ -92,14 +85,25 @@ window.renderOrders = function() {
 
     filteredOrders.forEach(order => {
         let timeStr = order.timestamp ? new Date(order.timestamp.toMillis()).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'Just now';
-        let itemsHtml = ""; for(let itemName in order.orderItems) { let item = order.orderItems[itemName]; itemsHtml += `<div><span>${item.quantity}x ${itemName}</span><span>₹${item.price * item.quantity}</span></div>`; }
+        
+        // Build items list for the UI AND for WhatsApp
+        let itemsHtml = "";
+        let whatsappItemsText = "";
+        
+        for(let itemName in order.orderItems) { 
+            let item = order.orderItems[itemName]; 
+            itemsHtml += `<div><span>${item.quantity}x ${itemName}</span><span>₹${item.price * item.quantity}</span></div>`; 
+            // Format for WhatsApp: "2x Jowar Roti (₹30)"
+            whatsappItemsText += `${item.quantity}x ${itemName} (₹${item.price * item.quantity})%0A`;
+        }
 
         let statusClass = "pending"; let actionButton = "";
         let phoneForWa = order.customerPhone || ""; if (phoneForWa.startsWith("+")) phoneForWa = phoneForWa.substring(1);
 
         if (order.status === "Pending" || !order.status) {
-            let msg = `Hello ${order.customerName}, your order for ₹${order.totalBill} is READY for pickup at Devi Sri Delights! 🎉`;
-            let waLink = `https://wa.me/${phoneForWa}?text=${encodeURIComponent(msg)}`;
+            // DETAILED WHATSAPP MESSAGE
+            let detailedMsg = `Hello *${order.customerName}*! 🎉%0A%0AYour order is *READY* for pickup at Devi Sri Delights!%0A%0A*Order Details:*%0A${whatsappItemsText}%0A*Total Bill: ₹${order.totalBill}*%0A%0ASee you soon!`;
+            let waLink = `https://wa.me/${phoneForWa}?text=${detailedMsg}`;
             actionButton = `<button class="btn-ready" onclick="markReady('${order.id}', '${waLink}')">Mark Ready & Notify</button>`;
         } else if (order.status === "Ready") {
             statusClass = "ready"; actionButton = `<button class="btn-picked" onclick="markPickedUp('${order.id}')">Confirm Picked Up</button>`;
@@ -162,17 +166,14 @@ window.openCardModal = function(cardId = null) {
 window.closeModal = function(id) { document.getElementById(id).classList.remove('show'); };
 
 window.saveCard = async function() {
-    const name = document.getElementById('card-name').value;
-    if (!name) return alert("Category Name required.");
+    const name = document.getElementById('card-name').value; if (!name) return alert("Category Name required.");
     const cardData = { name, image: document.getElementById('card-image').value, type: document.getElementById('card-type').value, order: parseInt(document.getElementById('card-order').value) || 99 };
     if (window.currentEditingCardId) await updateDoc(doc(db, "menu", window.currentEditingCardId), cardData);
     else { cardData.items = []; await addDoc(collection(db, "menu"), cardData); }
     closeModal('card-modal');
 };
 
-window.deleteCard = async function() {
-    if (confirm("Delete this entire category?")) { await deleteDoc(doc(db, "menu", window.currentEditingCardId)); closeModal('card-modal'); }
-};
+window.deleteCard = async function() { if (confirm("Delete this entire category?")) { await deleteDoc(doc(db, "menu", window.currentEditingCardId)); closeModal('card-modal'); } };
 
 function renderCardItemsList() {
     const list = document.getElementById('current-items-list'); list.innerHTML = "";
@@ -180,46 +181,30 @@ function renderCardItemsList() {
     if (items.length === 0) return list.innerHTML = "<p style='color: var(--text-light); font-size: 0.9rem;'>No items added yet.</p>";
 
     items.forEach((item, index) => {
-        let inStock = item.inStock !== false; // Default true
+        let inStock = item.inStock !== false;
         let stockBtn = inStock ? `<button class="btn-stock in-stock" onclick="toggleStock(${index})">In Stock</button>` : `<button class="btn-stock out-of-stock" onclick="toggleStock(${index})">Sold Out</button>`;
         let imgTag = item.image ? `<img src="${item.image}" style="width: 40px; height: 40px; border-radius: 4px; object-fit: cover; margin-right: 10px;">` : '';
-        
-        list.innerHTML += `
-            <div class="existing-item-row">
-                <div style="display: flex; align-items: center;">${imgTag}<div><strong style="display:block;">${item.name}</strong><span style="color: var(--primary); font-size: 0.85rem; font-weight: bold;">₹${item.price}</span></div></div>
-                <div style="display:flex; gap: 10px; align-items: center;">
-                    ${stockBtn}
-                    <button onclick="deleteItemFromCard(${index})" style="background: none; border: none; color: red; font-size: 1.2rem; cursor: pointer;">🗑️</button>
-                </div>
-            </div>`;
+        list.innerHTML += `<div class="existing-item-row"><div style="display: flex; align-items: center;">${imgTag}<div><strong style="display:block;">${item.name}</strong><span style="color: var(--primary); font-size: 0.85rem; font-weight: bold;">₹${item.price}</span></div></div><div style="display:flex; gap: 10px; align-items: center;">${stockBtn}<button onclick="deleteItemFromCard(${index})" style="background: none; border: none; color: red; font-size: 1.2rem; cursor: pointer;">🗑️</button></div></div>`;
     });
 }
 
-// FEATURE: TOGGLE OUT OF STOCK
 window.toggleStock = async function(index) {
-    let items = window.currentEditingCardData.items;
-    items[index].inStock = items[index].inStock === false ? true : false;
-    await updateDoc(doc(db, "menu", window.currentEditingCardId), { items: items });
-    renderCardItemsList();
+    let items = window.currentEditingCardData.items; items[index].inStock = items[index].inStock === false ? true : false;
+    await updateDoc(doc(db, "menu", window.currentEditingCardId), { items: items }); renderCardItemsList();
 };
 
 window.addNewItemToCard = async function() {
     const itemName = document.getElementById('new-item-name').value.trim(); const itemPrice = parseInt(document.getElementById('new-item-price').value);
     if (!itemName || isNaN(itemPrice)) return alert("Item name and price required.");
-    let items = window.currentEditingCardData.items || [];
-    let newItem = { name: itemName, price: itemPrice, inStock: true };
-    let img = document.getElementById('new-item-image').value.trim(); if(img) newItem.image = img;
-    items.push(newItem);
+    let items = window.currentEditingCardData.items || []; let newItem = { name: itemName, price: itemPrice, inStock: true };
+    let img = document.getElementById('new-item-image').value.trim(); if(img) newItem.image = img; items.push(newItem);
     await updateDoc(doc(db, "menu", window.currentEditingCardId), { items: items });
     document.getElementById('new-item-name').value = ""; document.getElementById('new-item-price').value = ""; document.getElementById('new-item-image').value = "";
     renderCardItemsList();
 };
 
 window.deleteItemFromCard = async function(index) {
-    if (confirm("Delete this item?")) {
-        let items = window.currentEditingCardData.items; items.splice(index, 1);
-        await updateDoc(doc(db, "menu", window.currentEditingCardId), { items: items }); renderCardItemsList();
-    }
+    if (confirm("Delete this item?")) { let items = window.currentEditingCardData.items; items.splice(index, 1); await updateDoc(doc(db, "menu", window.currentEditingCardId), { items: items }); renderCardItemsList(); }
 };
 
 listenForStoreStatus(); listenForOrders(); listenForMenu();
