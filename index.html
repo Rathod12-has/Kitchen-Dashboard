@@ -3,358 +3,109 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Live Kitchen | Devi Sri Delights</title>
-    
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#7E2CD4">
-
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Playfair+Display:wght@700;800;900&display=swap" rel="stylesheet">
+    <title>Devi Sri Delights - Admin Portal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
-    <div id="login-screen">
-        <h2 class="classy-title">👨‍🍳 Kitchen Access</h2>
-        <input type="email" id="email-input" class="styled-input" placeholder="Admin Email">
-        <input type="password" id="password-input" class="styled-input" placeholder="Password">
-        <button class="action-btn" onclick="attemptLogin()" style="margin-top: 20px;">Log In</button>
-        <div id="error-msg"></div>
-    </div>
-
-    <div id="dashboard-screen">
-        
-        <div class="dashboard-header">
-            <div class="header-titles">
-                <h1 class="classy-title" style="color: white; font-size: 1.8rem;">👨‍🍳 Kitchen Dashboard</h1>
-                <p style="color: #E9D5FF; font-weight: 600; margin: 5px 0 0 0;">Live Orders for Devi Sri Delights</p>
-            </div>
-            <button class="logout-btn" onclick="attemptLogout()">Logout</button>
-        </div>
-
-        <div class="stats-bar">
-            <div class="stat-box">
-                <div class="stat-title">📈 Today's Orders</div>
-                <div class="stat-value" id="today-count">0</div>
-            </div>
-            <div class="stat-box" style="border-left-color: #10B981;">
-                <div class="stat-title">💰 Today's Earned</div>
-                <div class="stat-value" id="today-earnings" style="color: #10B981;">₹0</div>
+    <nav class="admin-nav">
+        <div class="nav-brand">
+            👑 Devi Sri Admin
+            <div class="store-toggle-wrapper">
+                <span id="store-status-text">Store Closed</span>
+                <label class="switch">
+                    <input type="checkbox" id="store-toggle" onchange="toggleStoreOpen()">
+                    <span class="slider"></span>
+                </label>
             </div>
         </div>
-
-        <div class="tabs-container">
-            <button class="tab-btn active" data-tab="pending">New Orders</button>
-            <button class="tab-btn" data-tab="ready">Ready (Notify)</button>
-            <button class="tab-btn" data-tab="completed">Picked Up</button>
-            <button class="tab-btn" data-tab="summary">Today's Item Summary</button>
+        <div class="nav-links">
+            <button class="tab-btn active" onclick="switchTab('dashboard')">🍳 Dashboard</button>
+            <button class="tab-btn" onclick="switchTab('menu')">📖 Edit Menu</button>
+            <button class="tab-btn" onclick="switchTab('marketing')">📢 Broadcasts</button>
         </div>
+    </nav>
 
-        <div class="search-container" id="search-wrapper">
-            <input type="text" id="search-bar" class="styled-input" placeholder="🔍 Search by customer name...">
+    <!-- KITCHEN DASHBOARD SECTION -->
+    <section id="dashboard-section" class="admin-section active">
+        <div class="metrics-grid">
+            <div class="metric-card"><h3>Today's Orders</h3><h2 id="metric-orders">0</h2></div>
+            <div class="metric-card"><h3>Today's Earnings</h3><h2 id="metric-earnings" style="color: #10B981;">₹0</h2></div>
+            <div class="metric-card" style="grid-column: span 2;">
+                <h3>Today's Item Summary</h3>
+                <div id="metric-items" class="items-summary-scroll"><p style="color: #64748B;">No items sold today yet.</p></div>
+            </div>
         </div>
-
-        <div id="pending-tab" class="tab-panel active">
-            <div class="orders-grid" id="pending-container"></div>
+        <div class="orders-header">
+            <h2>Live Orders</h2>
+            <input type="text" id="search-order" placeholder="🔍 Search by Customer Name..." onkeyup="filterOrders()">
         </div>
-        
-        <div id="ready-tab" class="tab-panel">
-            <div class="orders-grid" id="ready-container"></div>
+        <div id="orders-grid" class="orders-grid"><p style="text-align: center; color: #64748B; width: 100%;">Loading live orders...</p></div>
+    </section>
+
+    <!-- EDIT MENU SECTION -->
+    <section id="menu-section" class="admin-section">
+        <div class="menu-header">
+            <h2>Menu Categories</h2>
+            <button class="action-btn" onclick="openCardModal()">+ Add New Category</button>
         </div>
+        <div id="menu-cards-grid" class="menu-cards-grid"><p style="text-align: center; color: #64748B; width: 100%;">Loading menu...</p></div>
+    </section>
 
-        <div id="completed-tab" class="tab-panel">
-            <div class="orders-grid" id="completed-container"></div>
+    <!-- MARKETING / BROADCAST SECTION -->
+    <section id="marketing-section" class="admin-section">
+        <div class="metric-card" style="max-width: 600px; margin: 0 auto; text-align: center;">
+            <h2 style="color: var(--primary);">📢 Send Live Announcement</h2>
+            <p style="color: var(--text-light); margin-bottom: 20px;">This message will instantly pop up on the screens of all customers currently looking at your app.</p>
+            <textarea id="broadcast-msg" class="styled-input" rows="4" placeholder="e.g. Flash Sale! Buy 2 Jowar Rotis get 1 free. Valid for the next hour!"></textarea>
+            <button class="action-btn" style="width: 100%; font-size: 1.1rem; padding: 15px;" onclick="sendBroadcast()">🚀 Send Live Broadcast</button>
         </div>
+    </section>
 
-        <div id="summary-tab" class="tab-panel">
-            <div class="summary-grid" id="item-summary-container"></div>
-        </div>
-
-    </div>
-
-    <div class="floating-app-bar">
-        <button id="share-float" class="float-btn">🔗 Share Dashboard</button>
-        <button id="download-float" class="float-btn" style="background: var(--btn-primary);">📱 Install App</button>
-    </div>
-
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
-        import { getFirestore, collection, query, orderBy, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
-        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js"; 
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyC7uuy0yYV3L17RJ0RvbN-mrfqrT4PquMo",
-            authDomain: "devi-sri-delights.firebaseapp.com",
-            projectId: "devi-sri-delights",
-            storageBucket: "devi-sri-delights.firebasestorage.app",
-            messagingSenderId: "73108349440",
-            appId: "1:73108349440:web:8ca038c61c9a85b2b12ee5"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const auth = getAuth(app);
-
-        const loginScreen = document.getElementById('login-screen');
-        const dashboardScreen = document.getElementById('dashboard-screen');
-        const pendingContainer = document.getElementById('pending-container');
-        const readyContainer = document.getElementById('ready-container');
-        const completedContainer = document.getElementById('completed-container');
-        const summaryContainer = document.getElementById('item-summary-container');
-
-        const searchBar = document.getElementById('search-bar');
-        const searchWrapper = document.getElementById('search-wrapper');
-        const errorMsg = document.getElementById('error-msg');
-
-        let unsubscribeSnapshot = null; 
-        window.allOrders = {};
-
-        // --- TAB SWITCHING LOGIC ---
-        document.querySelectorAll('.tab-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-                document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-                
-                e.target.classList.add('active');
-                const targetTab = e.target.getAttribute('data-tab');
-                document.getElementById(targetTab + '-tab').classList.add('active');
-
-                searchWrapper.style.display = (targetTab === 'summary') ? 'none' : 'block';
-            });
-        });
-
-        // --- AUTHENTICATION LOGIC ---
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                loginScreen.style.display = 'none';
-                dashboardScreen.style.display = 'block';
-                errorMsg.innerText = '';
-                loadLiveOrders();
-            } else {
-                loginScreen.style.display = 'block';
-                dashboardScreen.style.display = 'none';
-                if(unsubscribeSnapshot) unsubscribeSnapshot();
-            }
-        });
-
-        window.attemptLogin = function() {
-            const email = document.getElementById('email-input').value.trim();
-            const password = document.getElementById('password-input').value.trim();
+    <!-- MODAL: ADD/EDIT CATEGORY CARD -->
+    <div id="card-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h2 id="card-modal-title">Edit Category</h2>
+            <input type="hidden" id="edit-card-id">
             
-            if (!email || !password) {
-                errorMsg.innerText = "Please enter both email and password.";
-                return;
-            }
-
-            errorMsg.innerText = 'Connecting to Firebase...';
+            <label>Category Name:</label>
+            <input type="text" id="card-name" class="styled-input" placeholder="e.g., Rotis">
             
-            signInWithEmailAndPassword(auth, email, password)
-                .then((userCredential) => {
-                    console.log("Successfully logged in!");
-                })
-                .catch((error) => {
-                    console.error("Login Error:", error);
-                    if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password') {
-                        errorMsg.innerText = "Incorrect email or password. Try again.";
-                    } else if (error.code === 'auth/user-not-found') {
-                        errorMsg.innerText = "No account found with this email.";
-                    } else {
-                        errorMsg.innerText = "Error: " + error.message;
-                    }
-                });
-        };
+            <label>Card Image URL:</label>
+            <input type="text" id="card-image" class="styled-input" placeholder="https://...">
+            
+            <label>Card Type (Display Size):</label>
+            <select id="card-type" class="styled-input">
+                <option value="major">Major (Full Width - Rotis, Curries)</option>
+                <option value="minor">Minor (Half Width - Drinks, Shakes)</option>
+            </select>
 
-        window.attemptLogout = function() { 
-            signOut(auth); 
-        };
+            <label>Position (Order Number):</label>
+            <input type="number" id="card-order" class="styled-input" placeholder="1, 2, 3...">
 
-        // --- SEARCH FILTERING ---
-        function filterOrders() {
-            const searchTerm = searchBar.value.toLowerCase();
-            const cards = document.querySelectorAll('.order-card');
-            cards.forEach(card => {
-                const customerName = card.querySelector('.order-header h3').innerText.toLowerCase();
-                card.style.display = customerName.includes(searchTerm) ? 'flex' : 'none';
-            });
-        }
-        searchBar.addEventListener('input', filterOrders);
-
-        // --- REAL-TIME DATABASE SYNC ---
-        function loadLiveOrders() {
-            const q = query(collection(db, "orders"), orderBy("timestamp", "desc"));
-
-            unsubscribeSnapshot = onSnapshot(q, (snapshot) => {
-                pendingContainer.innerHTML = ''; 
-                readyContainer.innerHTML = '';
-                completedContainer.innerHTML = '';
-                summaryContainer.innerHTML = '';
+            <!-- Items Management -->
+            <div id="card-items-manager" style="display: none; margin-top: 20px; padding-top: 20px; border-top: 2px dashed #E2E8F0;">
+                <h3>Items in this Category</h3>
+                <div id="current-items-list"></div>
                 
-                window.allOrders = {}; 
-                
-                let todayCount = 0;
-                let todayEarnings = 0;
-                let itemSummary = {};
+                <div class="add-item-box">
+                    <h4>+ Add New Item</h4>
+                    <input type="text" id="new-item-name" class="styled-input" placeholder="Item Name">
+                    <input type="number" id="new-item-price" class="styled-input" placeholder="Price (₹)">
+                    <input type="text" id="new-item-image" class="styled-input" placeholder="Thumbnail Image URL (Optional)">
+                    <button class="action-btn" onclick="addNewItemToCard()" style="width: 100%; margin-top: 10px;">Add Item</button>
+                </div>
+            </div>
 
-                const startOfToday = new Date();
-                startOfToday.setHours(0, 0, 0, 0);
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button class="action-btn" style="flex: 1;" onclick="saveCard()">Save Category</button>
+                <button class="action-btn" style="background: #F1F5F9; color: #1E293B; flex: 1;" onclick="closeModal('card-modal')">Cancel</button>
+            </div>
+            <button id="delete-card-btn" style="display:none; width: 100%; background: #FFE4E6; color: #E11D48; border: none; padding: 12px; border-radius: 8px; margin-top: 10px; cursor: pointer; font-weight: bold;" onclick="deleteCard()">🗑️ Delete Entire Category</button>
+        </div>
+    </div>
 
-                let pendingHtml = '';
-                let readyHtml = '';
-                let completedHtml = '';
-
-                snapshot.forEach((orderDoc) => {
-                    const order = orderDoc.data();
-                    const orderId = orderDoc.id;
-                    window.allOrders[orderId] = order;
-                    
-                    let orderDate = order.timestamp ? order.timestamp.toDate() : new Date();
-                    let isToday = orderDate >= startOfToday;
-
-                    if (isToday) {
-                        todayCount++;
-                        todayEarnings += Number(order.totalBill) || 0;
-                        
-                        for (let itemName in order.orderItems) {
-                            itemSummary[itemName] = (itemSummary[itemName] || 0) + order.orderItems[itemName].quantity;
-                        }
-                    }
-
-                    let timeString = "Just Now";
-                    if(order.timestamp) {
-                        timeString = orderDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                        if(!isToday) {
-                            timeString = orderDate.toLocaleDateString() + " " + timeString;
-                        }
-                    }
-
-                    let itemsHTML = '';
-                    for (let itemName in order.orderItems) {
-                        itemsHTML += `<li>${itemName} <strong>(x${order.orderItems[itemName].quantity})</strong></li>`;
-                    }
-
-                    let status = order.status || "Pending";
-                    let cardClass = '';
-                    let actionHTML = '';
-
-                    if (status === "Pending") {
-                        actionHTML = `<button class="action-btn" onclick="markReady('${orderId}')">🔥 Mark as Ready & Notify</button>`;
-                    } else if (status === "Ready") {
-                        cardClass = 'ready';
-                        actionHTML = `<button class="action-btn pickup-btn" onclick="markPickedUp('${orderId}')">🛍️ Mark as Picked Up</button>`;
-                    } else if (status === "Picked up" || status === "Completed") {
-                        cardClass = 'completed';
-                        actionHTML = `<div class="completed-text">✔️ Order Picked Up</div>`;
-                    }
-
-                    const cardHTML = `
-                        <div class="order-card ${cardClass}">
-                            <div class="order-header">
-                                <h3>👤 ${order.customerName}</h3>
-                                <span class="time-badge">🕒 ${timeString}</span>
-                            </div>
-                            <ul class="item-list">
-                                ${itemsHTML}
-                            </ul>
-                            <div class="total-bill">Total: ₹${order.totalBill}</div>
-                            ${actionHTML}
-                        </div>
-                    `;
-
-                    if (status === "Pending") pendingHtml += cardHTML;
-                    else if (status === "Ready") readyHtml += cardHTML;
-                    else completedHtml += cardHTML;
-                });
-                
-                pendingContainer.innerHTML = pendingHtml || '<div class="empty-state">No new orders right now.</div>';
-                readyContainer.innerHTML = readyHtml || '<div class="empty-state">No orders waiting for pickup.</div>';
-                completedContainer.innerHTML = completedHtml || '<div class="empty-state">No completed orders yet.</div>';
-
-                document.getElementById('today-count').innerText = todayCount;
-                document.getElementById('today-earnings').innerText = '₹' + todayEarnings;
-
-                let summaryHTML = '';
-                let hasItems = false;
-                for (let item in itemSummary) {
-                    hasItems = true;
-                    summaryHTML += `
-                        <div class="summary-item">
-                            <div>${item}</div>
-                            <span>x${itemSummary[item]}</span>
-                        </div>`;
-                }
-                summaryContainer.innerHTML = hasItems ? summaryHTML : '<div class="empty-state" style="grid-column: 1/-1;">No items sold today yet.</div>';
-
-                filterOrders();
-            });
-        }
-
-        // --- ORDER ACTIONS & WHATSAPP GENERATION ---
-        window.markReady = async function(orderId) {
-            const orderRef = doc(db, "orders", orderId);
-            await updateDoc(orderRef, { status: "Ready" }); 
-
-            const order = window.allOrders[orderId];
-            if (order && order.customerPhone) {
-                let cleanPhone = order.customerPhone.replace(/[^0-9]/g, ''); 
-                let itemsList = '';
-                for(let key in order.orderItems) {
-                    itemsList += `▪️ ${key} (x${order.orderItems[key].quantity})\n`;
-                }
-                let msg = `🎉 *Your Order is Ready!*\n\nHello ${order.customerName},\nYour food from *Devi Sri Delights* is hot and ready for pickup!\n\n*Order Details:*\n${itemsList}\n*Total Bill:* ₹${order.totalBill}\n\nPlease collect it at the counter. See you soon! 🍽️`;
-                let waUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`;
-                window.open(waUrl, '_blank');
-            }
-        };
-
-        window.markPickedUp = async function(orderId) {
-            const orderRef = doc(db, "orders", orderId);
-            await updateDoc(orderRef, { status: "Picked up" }); 
-        };
-
-        // --- SHARING & PWA LOGIC ---
-        document.getElementById('share-float').addEventListener('click', async () => {
-            if (navigator.share) {
-                try {
-                    await navigator.share({
-                        title: 'Live Kitchen Dashboard',
-                        text: 'Access the Devi Sri Delights Kitchen Dashboard',
-                        url: window.location.href
-                    });
-                } catch (err) {
-                    console.log('Error sharing:', err);
-                }
-            } else {
-                navigator.clipboard.writeText(window.location.href);
-                alert('Dashboard link copied to clipboard!');
-            }
-        });
-
-        let deferredPrompt;
-        const downloadBtn = document.getElementById('download-float');
-
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            downloadBtn.style.display = 'block';
-        });
-
-        downloadBtn.addEventListener('click', async () => {
-            if (deferredPrompt !== null) {
-                deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
-                deferredPrompt = null;
-                if(outcome === 'accepted') {
-                    downloadBtn.style.display = 'none';
-                }
-            }
-        });
-
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js').catch(err => {
-                    console.log('ServiceWorker registration failed: ', err);
-                });
-            });
-        }
-    </script>
+    <audio id="kitchen-bell" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto"></audio>
+    <script type="module" src="script.js"></script>
 </body>
 </html>
