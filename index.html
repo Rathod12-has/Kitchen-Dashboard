@@ -107,8 +107,8 @@
                 <h3 style="margin-top: 0; color: var(--text-dark);">Customer Match Found</h3>
                 <p><strong>Name:</strong> <span id="reward-name"></span></p>
                 <p><strong>Email:</strong> <span id="reward-email"></span></p>
-                <p style="font-size: 1.2rem; color: #10B981; font-weight: 800; text-align: center; margin: 15px 0;">Available Desserts to Claim: <span id="reward-available"></span></p>
-                <button id="claim-btn" class="action-btn" style="width: 100%;" onclick="executeClaim()">Mark 1 Dessert as Claimed</button>
+                <p style="font-size: 1.2rem; color: #10B981; font-weight: 800; text-align: center; margin: 15px 0;">Available Ice Creams to Claim: <span id="reward-available"></span></p>
+                <button id="claim-btn" class="action-btn" style="width: 100%;" onclick="executeClaim()">Mark 1 Ice Cream as Claimed</button>
             </div>
         </div>
     </section>
@@ -499,7 +499,6 @@
             const cameraBtn = document.getElementById('camera-btn');
 
             if (qrReaderElement.style.display === 'block') {
-                // Stop Scanning
                 if (html5QrcodeScanner) { html5QrcodeScanner.clear(); }
                 qrReaderElement.style.display = 'none';
                 cameraBtn.innerHTML = "📷 Open Camera to Scan";
@@ -507,28 +506,20 @@
                 return;
             }
 
-            // Start Scanning
             qrReaderElement.style.display = 'block';
             cameraBtn.innerHTML = "❌ Close Camera";
             cameraBtn.style.background = "var(--danger)";
 
             html5QrcodeScanner = new Html5QrcodeScanner("qr-reader", { fps: 10, qrbox: {width: 250, height: 250} }, false);
-            
             html5QrcodeScanner.render((decodedText) => {
-                // Success Scan
                 html5QrcodeScanner.clear();
                 qrReaderElement.style.display = 'none';
                 cameraBtn.innerHTML = "📷 Open Camera to Scan";
                 cameraBtn.style.background = "#3B82F6";
-                
-                // Process the code
                 processRewardData(decodedText);
-            }, (errorMessage) => {
-                // Ignore background errors while scanning
-            });
+            }, (errorMessage) => { });
         };
 
-        // Handle text input scan (Barcode gun / Paste)
         window.handleQRScan = function(e) {
             if (e.key === 'Enter') {
                 let inputVal = document.getElementById('qr-scanner-input').value; 
@@ -537,7 +528,6 @@
             }
         };
 
-        // Common Data Processing Function
         function processRewardData(inputVal) {
             try {
                 let data = JSON.parse(decodeURIComponent(inputVal));
@@ -561,7 +551,7 @@
                     } else { 
                         document.getElementById('claim-btn').disabled = false; 
                         document.getElementById('claim-btn').style.background = "var(--primary)"; 
-                        document.getElementById('claim-btn').innerText = "Mark 1 Dessert as Claimed"; 
+                        document.getElementById('claim-btn').innerText = "Mark 1 Ice Cream as Claimed"; 
                     }
                 }
             } catch(err) { 
@@ -572,7 +562,7 @@
 
         window.executeClaim = async function() {
             if(!scannedRewardData || scannedRewardData.actualAvailable <= 0) return;
-            showCustomConfirm("Confirm claiming 1 free dessert for this customer?", async () => {
+            showCustomConfirm("Confirm claiming 1 free ice cream for this customer?", async () => {
                 let userDoc = window.allUsers.find(u => u.id === scannedRewardData.uid);
                 let newClaimCount = (userDoc && userDoc.claimedDesserts ? userDoc.claimedDesserts : 0) + 1;
                 await updateDoc(doc(db, "users", scannedRewardData.uid), { claimedDesserts: newClaimCount }, { merge: true });
