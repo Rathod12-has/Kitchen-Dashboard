@@ -8,6 +8,18 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
+    <div id="admin-login-overlay">
+        <div class="login-card">
+            <div style="font-size: 3rem; margin-bottom: 10px;">👑</div>
+            <h2>Admin Portal</h2>
+            <p>Devi Sri Delights & Foods</p>
+            <input type="email" id="admin-email" class="login-input" placeholder="Admin Email">
+            <input type="password" id="admin-password" class="login-input" placeholder="Password">
+            <button class="login-btn" onclick="adminLogin()">Login to Dashboard</button>
+        </div>
+    </div>
+
     <nav class="admin-nav">
         <div class="nav-brand">
             👑 Devi Sri Admin
@@ -20,13 +32,15 @@
             </div>
         </div>
         <div class="nav-links">
-            <button class="tab-btn active" onclick="switchTab('dashboard')">🍳 Dashboard</button>
-            <button class="tab-btn" onclick="switchTab('menu')">📖 Edit Menu</button>
-            <button class="tab-btn" onclick="switchTab('marketing')">📢 Broadcasts</button>
+            <button class="tab-btn active" onclick="switchTab('dashboard')">🍳 Orders</button>
+            <button class="tab-btn" onclick="switchTab('menu')">📖 Menu</button>
+            <button class="tab-btn" onclick="switchTab('users')">👥 Users</button>
+            <button class="tab-btn" onclick="switchTab('rewards')">🎁 Rewards</button>
+            <button class="tab-btn" onclick="switchTab('marketing')">📢 Alerts</button>
+            <button class="tab-btn" onclick="adminLogout()" style="color: #EF4444; font-weight: 800;">🚪 Logout</button>
         </div>
     </nav>
 
-    <!-- KITCHEN DASHBOARD SECTION -->
     <section id="dashboard-section" class="admin-section active">
         <div class="metrics-grid">
             <div class="metric-card"><h3>Today's Orders</h3><h2 id="metric-orders">0</h2></div>
@@ -36,14 +50,30 @@
                 <div id="metric-items" class="items-summary-scroll"><p style="color: #64748B;">No items sold today yet.</p></div>
             </div>
         </div>
+        
         <div class="orders-header">
-            <h2>Live Orders</h2>
-            <input type="text" id="search-order" placeholder="🔍 Search by Customer Name..." onkeyup="filterOrders()">
+            <h2>Order Management</h2>
+            <input type="text" id="search-order" class="styled-input" style="width: 300px; margin-bottom: 0;" placeholder="🔍 Search orders by name..." onkeyup="renderOrders()">
         </div>
-        <div id="orders-grid" class="orders-grid"><p style="text-align: center; color: #64748B; width: 100%;">Loading live orders...</p></div>
+
+        <div class="kanban-board">
+            <div class="kanban-col pending-col">
+                <div class="kanban-header">🔥 Pending (Mark Ready) <span id="count-pending" class="kanban-count">0</span></div>
+                <div id="orders-pending" class="kanban-list"></div>
+            </div>
+            
+            <div class="kanban-col ready-col">
+                <div class="kanban-header">🛍️ Ready for Pickup <span id="count-ready" class="kanban-count">0</span></div>
+                <div id="orders-ready" class="kanban-list"></div>
+            </div>
+
+            <div class="kanban-col completed-col">
+                <div class="kanban-header">✅ Completed <span id="count-completed" class="kanban-count">0</span></div>
+                <div id="orders-completed" class="kanban-list"></div>
+            </div>
+        </div>
     </section>
 
-    <!-- EDIT MENU SECTION -->
     <section id="menu-section" class="admin-section">
         <div class="menu-header">
             <h2>Menu Categories</h2>
@@ -52,7 +82,30 @@
         <div id="menu-cards-grid" class="menu-cards-grid"><p style="text-align: center; color: #64748B; width: 100%;">Loading menu...</p></div>
     </section>
 
-    <!-- MARKETING / BROADCAST SECTION -->
+    <section id="users-section" class="admin-section">
+        <div class="orders-header">
+            <h2>User Database</h2>
+            <input type="text" id="search-user" class="styled-input" style="width: 350px; margin-bottom: 0;" placeholder="🔍 Search name, email, or phone..." onkeyup="renderUsers()">
+        </div>
+        <div id="users-grid" class="users-grid"><p style="text-align: center; color: #64748B; width: 100%;">Loading users...</p></div>
+    </section>
+
+    <section id="rewards-section" class="admin-section">
+        <div class="metric-card" style="max-width: 600px; margin: 0 auto; text-align: center;">
+            <h2 style="color: var(--primary);">🎁 Scan & Claim Rewards</h2>
+            <p style="color: var(--text-light); margin-bottom: 20px;">Use a barcode scanner to scan the customer's QR code, or paste the QR data here to verify and claim their free dessert.</p>
+            <input type="text" id="qr-scanner-input" class="styled-input" placeholder="Click here and scan QR code..." style="text-align: center; font-size: 1.1rem; padding: 15px;" onkeypress="handleQRScan(event)">
+            
+            <div id="reward-result-card" style="display: none; margin-top: 20px; background: #F8FAFC; padding: 20px; border-radius: 12px; border: 1px dashed var(--primary); text-align: left;">
+                <h3 style="margin-top: 0; color: var(--text-dark);">Customer Match Found</h3>
+                <p><strong>Name:</strong> <span id="reward-name"></span></p>
+                <p><strong>Email:</strong> <span id="reward-email"></span></p>
+                <p style="font-size: 1.2rem; color: #10B981; font-weight: 800; text-align: center; margin: 15px 0;">Available Desserts to Claim: <span id="reward-available"></span></p>
+                <button id="claim-btn" class="action-btn" style="width: 100%;" onclick="executeClaim()">Mark 1 Dessert as Claimed</button>
+            </div>
+        </div>
+    </section>
+
     <section id="marketing-section" class="admin-section">
         <div class="metric-card" style="max-width: 600px; margin: 0 auto; text-align: center;">
             <h2 style="color: var(--primary);">📢 Send Live Announcement</h2>
@@ -62,10 +115,9 @@
         </div>
     </section>
 
-    <!-- MODAL: ADD/EDIT CATEGORY CARD -->
     <div id="card-modal" class="modal-overlay">
         <div class="modal-content">
-            <h2 id="card-modal-title">Edit Category</h2>
+            <h2 id="card-modal-title" style="margin-top:0;">Edit Category</h2>
             <input type="hidden" id="edit-card-id">
             
             <label>Category Name:</label>
@@ -83,16 +135,15 @@
             <label>Position (Order Number):</label>
             <input type="number" id="card-order" class="styled-input" placeholder="1, 2, 3...">
 
-            <!-- Items Management -->
             <div id="card-items-manager" style="display: none; margin-top: 20px; padding-top: 20px; border-top: 2px dashed #E2E8F0;">
-                <h3>Items in this Category</h3>
+                <h3 style="margin-top:0;">Items in this Category</h3>
                 <div id="current-items-list"></div>
                 
                 <div class="add-item-box">
-                    <h4>+ Add New Item</h4>
+                    <h4 style="margin-top:0;">+ Add New Item</h4>
                     <input type="text" id="new-item-name" class="styled-input" placeholder="Item Name">
                     <input type="number" id="new-item-price" class="styled-input" placeholder="Price (₹)">
-                    <input type="text" id="new-item-image" class="styled-input" placeholder="Thumbnail Image URL (Optional)">
+                    <textarea id="new-item-image" class="styled-input" placeholder="Image URLs (Separate multiple images with commas)" rows="2"></textarea>
                     <button class="action-btn" onclick="addNewItemToCard()" style="width: 100%; margin-top: 10px;">Add Item</button>
                 </div>
             </div>
@@ -102,6 +153,51 @@
                 <button class="action-btn" style="background: #F1F5F9; color: #1E293B; flex: 1;" onclick="closeModal('card-modal')">Cancel</button>
             </div>
             <button id="delete-card-btn" style="display:none; width: 100%; background: #FFE4E6; color: #E11D48; border: none; padding: 12px; border-radius: 8px; margin-top: 10px; cursor: pointer; font-weight: bold;" onclick="deleteCard()">🗑️ Delete Entire Category</button>
+        </div>
+    </div>
+
+    <div id="user-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h2 style="margin-top:0; color: var(--primary);">Edit User Details</h2>
+            <input type="hidden" id="edit-user-id">
+            
+            <label>Full Name:</label>
+            <input type="text" id="edit-user-name" class="styled-input">
+            
+            <label>Email Address:</label>
+            <input type="email" id="edit-user-email" class="styled-input">
+            
+            <label>Phone Number:</label>
+            <input type="text" id="edit-user-phone" class="styled-input" placeholder="+91...">
+
+            <label>Profile Photo URL:</label>
+            <input type="text" id="edit-user-photo" class="styled-input">
+
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button class="action-btn" style="flex: 1;" onclick="saveUserEdit()">Save Changes</button>
+                <button class="action-btn" style="background: #F1F5F9; color: #1E293B; flex: 1;" onclick="closeModal('user-modal')">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="custom-alert-modal" class="modal-overlay" style="z-index: 10000;">
+        <div style="background: var(--card-bg); position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 85%; max-width: 350px; padding: 25px; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); text-align: center; animation: alertPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;">
+            <div id="custom-alert-icon" style="font-size: 3.5rem; margin-bottom: 10px; animation: bounceContinuous 2s infinite;">🔔</div>
+            <h3 id="custom-alert-title" style="color: var(--primary); margin-top: 0; font-size: 1.4rem;">Alert</h3>
+            <p id="custom-alert-message" style="color: var(--text-light); font-size: 0.95rem; line-height: 1.5; margin-bottom: 20px; font-weight: 600;"></p>
+            <button onclick="document.getElementById('custom-alert-modal').classList.remove('show')" class="action-btn" style="width: 100%; margin-top: 0;">Okay</button>
+        </div>
+    </div>
+
+    <div id="custom-confirm-modal" class="modal-overlay" style="z-index: 10000;">
+        <div style="background: var(--card-bg); position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 85%; max-width: 350px; padding: 25px; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); text-align: center; animation: alertPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;">
+            <div style="font-size: 3.5rem; margin-bottom: 10px;">🗑️</div>
+            <h3 style="color: #E11D48; margin-top: 0; font-size: 1.4rem;">Are you sure?</h3>
+            <p id="custom-confirm-message" style="color: var(--text-light); font-size: 0.95rem; line-height: 1.5; margin-bottom: 20px; font-weight: 600;"></p>
+            <div style="display: flex; gap: 10px;">
+                <button onclick="closeConfirmModal()" class="action-btn" style="background: #F1F5F9; color: var(--text-dark); margin-top: 0; box-shadow: none;">Cancel</button>
+                <button onclick="executeConfirm()" class="action-btn" style="background: #E11D48; margin-top: 0;">Yes, Do it</button>
+            </div>
         </div>
     </div>
 
